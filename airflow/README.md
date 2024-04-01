@@ -6,7 +6,7 @@
    $ vi .env
    ...
    AIRFLOW_UID=0
-   AIRFLOW_PROJ_DIR=/Users/noname/data/airflow
+   AIRFLOW_PROJ_DIR=$HOME/data/airflow
    DOCKER_SOCKET_FILE=/var/run/docker.sock
    ...
 
