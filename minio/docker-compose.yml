@@ -1,0 +1,12 @@
+services:
+  devops:
+    image: minio/minio
+    container_name: minio
+    restart: always
+    ports:
+      - 59000:9000
+      - 59001:9001
+    volumes:
+      - ~/data/minio/data:/data
+    command:
+      minio server $MINIO_VOLUMES $MINIO_OPTS
