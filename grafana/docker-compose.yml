@@ -1,0 +1,12 @@
+services:
+  devops:
+    image: grafana/grafana
+    container_name: grafana
+    restart: always
+    ports:
+      - 53000:3000
+    volumes:
+      - ./conf/grafana.ini:/etc/grafana/grafana.ini
+      - ~/data/grafana/data:/var/lib/grafana
+      - ~/data/grafana/log:/var/log/grafana
+
