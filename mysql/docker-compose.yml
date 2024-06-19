@@ -1,0 +1,15 @@
+services:
+  devops:
+    image: mysql
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: changeit
+    ports:
+      - 53306:3306
+      - 53307:33060
+    volumes:
+      - ./conf:/etc/mysql/conf.d
+      - ./entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ~/data/mysql/data:/var/lib/mysql
+      - ~/data/mysql/log:/var/log/mysql
