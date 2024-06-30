@@ -1,0 +1,14 @@
+services:
+  devops:
+    image: keycloak/keycloak
+    container_name: keycloak
+    restart: always
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=changeit
+    ports:
+      - 58080:8080
+    command:
+      - start-dev
+#    volumes:
+#      - ~/data/mysql/log:/var/log/mysql
