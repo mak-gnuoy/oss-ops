@@ -1,0 +1,25 @@
+services:
+  iam:
+    image: keycloak/keycloak
+    restart: unless-stopped
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=changeit
+    ports:
+      - 58080:8080
+    volumes:
+      - ~/data/keycloak/keycloak/data:/opt/keycloak/data
+      - ~/data/keycloak/keycloak/log:/opt/keycloak/data/log
+    networks:
+      - iam
+    command:
+      - start-dev
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 500M
+
+networks:
+  iam:
+    driver: bridge
