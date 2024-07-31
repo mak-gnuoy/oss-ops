@@ -1,0 +1,61 @@
+services:
+
+  hive-metastore:
+    image: apache/hive:4.0.0
+    hostname: hive-metastore
+    container_name: hive-metastore
+    restart: unless-stopped
+    ports:
+      - 59083:9083
+    environment:
+      - SERVICE_NAME=metastore
+      - HIVE_CUSTOM_CONF_DIR=/hive_custom_conf
+      - DB_DRIVER=mysql 
+    volumes:
+      - ./hive_metastore/conf/metastore-mysql-site.xml:/hive_custom_conf/metastore-site.xml
+      - ./hive_metastore/lib/hadoop-common-3.4.0.jar:/opt/hive/lib/hadoop-common-3.4.0.jar
+      - ./hive_metastore/lib/hadoop-aws-3.4.0.jar:/opt/hive/lib/hadoop-aws-3.4.0.jar
+      - ./hive_metastore/lib/bundle-2.26.9.jar:/opt/hive/lib/bundle-2.26.9.jar
+      - ./hive_metastore/lib/guava-33.2.1-jre.jar:/opt/hive/lib/guava-33.2.1-jre.jar
+      - ./hive_metastore/lib/mysql-connector-j-8.4.0.jar:/opt/hive/lib/mysql-connector-j-8.4.0.jar
+    networks:
+      - trino
+    depends_on:
+      - hive-metastore-mysql
+
+  hive-metastore-mysql:
+    image: mysql
+    hostname: hive-metastore-mysql
+    container_name: hive-metastore-mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=changeit
+    ports:
+      - 53301:3306
+      - 53302:33060
+    volumes:
+      - ./hive_metastore_mysql/conf:/etc/mysql/conf.d
+      - ./hive_metastore_mysql/entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ~/data/trino/hive_metastore_mysql/data:/var/lib/mysql
+      - ~/data/trino/hive_metastore_mysql/log:/var/log/mysql
+    networks:
+      - trino
+
+  trino:
+    image: trinodb/trino
+    restart: unless-stopped
+    ports:
+      - 58080:8080
+    volumes:
+      - ./trino/conf/config.properties:/etc/trino/config.properties
+      - ./trino/conf/log.properties:/etc/trino/log.properties
+      - ./trino/conf/node.properties:/etc/trino/node.properties
+      - ./trino/catalog:/etc/trino/catalog
+      - ~/data/trino/trino/log:/data/trino/var/log
+      - ~/data/trino/trino/run:/data/trino/var/run
+    networks:
+      - trino
+
+networks:
+  trino:
+    driver: bridge

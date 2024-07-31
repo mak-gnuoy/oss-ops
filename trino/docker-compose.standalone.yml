@@ -1,0 +1,25 @@
+services:
+  trino:
+    image: trinodb/trino
+    restart: unless-stopped
+    ports:
+      - 58080:8080
+    volumes:
+      - ./trino/conf/config.properties:/etc/trino/config.properties
+      - ./trino/conf/log.properties:/etc/trino/log.properties
+      - ./trino/conf/node.properties:/etc/trino/node.properties
+      - ./trino/catalog:/etc/trino/catalog
+      - ~/data/trino/trino/log:/data/trino/var/log
+      - ~/data/trino/trino/run:/data/trino/var/run
+    networks:
+      - trino
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 500M
+
+networks:
+  trino:
+    driver: bridge
+

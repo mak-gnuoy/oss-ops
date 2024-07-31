@@ -1,0 +1,124 @@
+services:
+
+  hive-metastore:
+    image: apache/hive:4.0.0
+    hostname: hive-metastore
+    container_name: hive-metastore
+    restart: unless-stopped
+    ports:
+      - 59083:9083
+    environment:
+      - SERVICE_NAME=metastore
+      - HIVE_CUSTOM_CONF_DIR=/hive_custom_conf
+      - DB_DRIVER=mysql 
+    volumes:
+      - ./hive_metastore/conf/metastore-mysql-site.xml:/hive_custom_conf/metastore-site.xml
+      - ./hive_metastore/lib/hadoop-common-3.4.0.jar:/opt/hive/lib/hadoop-common-3.4.0.jar
+      - ./hive_metastore/lib/hadoop-aws-3.4.0.jar:/opt/hive/lib/hadoop-aws-3.4.0.jar
+      - ./hive_metastore/lib/bundle-2.26.9.jar:/opt/hive/lib/bundle-2.26.9.jar
+      - ./hive_metastore/lib/guava-33.2.1-jre.jar:/opt/hive/lib/guava-33.2.1-jre.jar
+      - ./hive_metastore/lib/mysql-connector-j-8.4.0.jar:/opt/hive/lib/mysql-connector-j-8.4.0.jar
+    networks:
+      - trino
+    depends_on:
+      - hive-metastore-mysql
+
+  hive-metastore-mysql:
+    image: mysql
+    hostname: hive-metastore-mysql
+    container_name: hive-metastore-mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=changeit
+    ports:
+      - 53301:3306
+      - 53302:33060
+    volumes:
+      - ./hive_metastore_mysql/conf:/etc/mysql/conf.d
+      - ./hive_metastore_mysql/entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ~/data/trino/hive_metastore_mysql/data:/var/lib/mysql
+      - ~/data/trino/hive_metastore_mysql/log:/var/log/mysql
+    networks:
+      - trino
+
+  minio:
+    image: minio/minio
+    hostname: minio
+    container_name: minio
+    restart: unless-stopped
+    ports:
+      - 59000:9000
+      - 59001:9001
+    volumes:
+      - ~/data/trino/minio/data:/data
+    env_file: .env
+    command:
+      minio server $MINIO_VOLUMES $MINIO_OPTS
+    networks:
+      - trino
+
+  minio-init-data:
+    image: minio/mc 
+    volumes: 
+      - ./minio/entrypoint-init.d:/entrypoint-init.d
+    depends_on:
+      - minio
+    entrypoint:
+      /entrypoint-init.d/import_samples.sh 
+    networks:
+      - trino
+
+  mysql:
+    image: mysql
+    hostname: mysql
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=changeit
+    ports:
+      - 53306:3306
+      - 53307:33060
+    volumes:
+      - ./mysql/conf:/etc/mysql/conf.d
+      - ./mysql/entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ~/data/trino/mysql/data:/var/lib/mysql
+      - ~/data/trino/mysql/log:/var/log/mysql
+    networks:
+      - trino
+
+  trino:
+    image: trinodb/trino
+    hostname: trino
+    container_name: trino
+    restart: unless-stopped
+    ports:
+      - 58080:8080
+    volumes:
+      - ./trino/conf/config.properties:/etc/trino/config.properties
+      - ./trino/conf/log.properties:/etc/trino/log.properties
+      - ./trino/conf/node.properties:/etc/trino/node.properties
+      - ./trino/catalog:/etc/trino/catalog
+      - ~/data/trino/trino/log:/data/trino/var/log
+      - ~/data/trino/trino/run:/data/trino/var/run
+    networks:
+      - trino
+
+  trino-init-data:
+    image: trinodb/trino
+    volumes:
+      - ./trino/entrypoint-init.d:/entrypoint-init.d
+      - ./trino/lib/trino-cli-452-executable.jar:/trino/trino-cli-452-executable.jar
+    environment:
+      - TRINO_USER=admin
+      - TRINO_PASSWORD=changeit
+    depends_on:
+      trino:
+        condition: service_healthy
+    entrypoint:
+      ["/bin/bash", "-c", "/entrypoint-init.d/create_samples.sh"]
+    networks:
+      - trino
+
+networks:
+  trino:
+    driver: bridge

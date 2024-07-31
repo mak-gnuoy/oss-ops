@@ -1,0 +1,61 @@
+services:
+
+  hive-metastore:
+    image: apache/hive:4.0.0
+    hostname: hive-metastore
+    container_name: hive-metastore
+    restart: unless-stopped
+    ports:
+      - 59083:9083
+    environment:
+      - SERVICE_NAME=metastore
+      - HIVE_CUSTOM_CONF_DIR=/hive_custom_conf
+      - DB_DRIVER=postgres 
+    volumes:
+      - ./hive_metastore/conf/metastore-postgresql-site.xml:/hive_custom_conf/metastore-site.xml
+      - ./hive_metastore/lib/hadoop-common-3.4.0.jar:/opt/hive/lib/hadoop-common-3.4.0.jar
+      - ./hive_metastore/lib/hadoop-aws-3.4.0.jar:/opt/hive/lib/hadoop-aws-3.4.0.jar
+      - ./hive_metastore/lib/bundle-2.26.9.jar:/opt/hive/lib/bundle-2.26.9.jar
+      - ./hive_metastore/lib/guava-33.2.1-jre.jar:/opt/hive/lib/guava-33.2.1-jre.jar
+      - ./hive_metastore/lib/postgresql-42.7.3.jar:/opt/hive/lib/postgresql-42.7.3.jar
+    networks:
+      - trino
+    depends_on:
+      - hive-metastore-postgresql
+
+  hive-metastore-postgresql:
+    image: postgres
+    hostname: hive-metastore-postgresql
+    container_name: hive-metastore-postgresql
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=changeit
+      - POSTGRES_DB=metastore_db
+    ports:
+      - 55432:5432
+    volumes:
+      - ./hive_metastore_postgresql/entrypoint-initdb.d:/docker-entrypoint-initdb.d
+#      - ~/data/trino/hive_metastore_postgresql/data:/var/lib/postgresql/data/pgdata
+#      - ~/data/trino/hive_metastore_postgresql/log:/var/log/postgresql
+    networks:
+      - trino
+
+  trino:
+    image: trinodb/trino
+    restart: unless-stopped
+    ports:
+      - 58080:8080
+    volumes:
+      - ./trino/conf/config.properties:/etc/trino/config.properties
+      - ./trino/conf/log.properties:/etc/trino/log.properties
+      - ./trino/conf/node.properties:/etc/trino/node.properties
+      - ./trino/catalog:/etc/trino/catalog
+      - ~/data/trino/trino/log:/data/trino/var/log
+      - ~/data/trino/trino/run:/data/trino/var/run
+    networks:
+      - trino
+
+networks:
+  trino:
+    driver: bridge
