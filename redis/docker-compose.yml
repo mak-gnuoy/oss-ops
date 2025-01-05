@@ -1,0 +1,11 @@
+services:
+  devops:
+    image: redis
+    container_name: redis
+    restart: always
+    ports:
+      - 56379:6379
+    volumes:
+      - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+      - ~/data/redis/data:/data
+      - ~/data/redis/log:/var/log/redis
