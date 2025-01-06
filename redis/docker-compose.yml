@@ -9,3 +9,4 @@ services:
       - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
       - ~/data/redis/data:/data
       - ~/data/redis/log:/var/log/redis
+    command: redis-server /usr/local/etc/redis/redis.conf
