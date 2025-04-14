@@ -2,6 +2,7 @@
 
 echo -e "##### Changing to swapoff ..."
 sudo swapoff -a
+sudo sed -i -e '/swap/d' /etc/fstab
 echo -e "##### ... done."
 
 echo -e "##### Configuring Notwork ..."
@@ -25,7 +26,9 @@ echo -e "##### Installing containerd ..."
 CONTAINERD_VERSION=2.0.4
 INSTALL_DIR=/usr/local
 curl -sL https://github.com/containerd/containerd/releases/download/v$CONTAINERD_VERSION/containerd-$CONTAINERD_VERSION-$PLATFORM-$ARCH.tar.gz | sudo tar -C $INSTALL_DIR -xz
-sudo curl -sL -o $SYSTEMD_DIR/containerd.service https://raw.githubusercontent.com/containerd/containerd/main/containerd.service
+DOWNLOAD_DIR=/usr/local/lib/systemd/system
+sudo mkdir -p $DOWNLOAD_DIR
+sudo curl -sL -o $DOWNLOAD_DIR/containerd.service https://raw.githubusercontent.com/containerd/containerd/main/containerd.service
 sudo systemctl daemon-reload 
 sudo systemctl enable --now containerd
 echo -e "##### ... done."
@@ -42,7 +45,7 @@ echo -e "##### Installing CNI Plugin ..."
 # https://github.com/containerd/containerd/blob/main/docs/getting-started.md
 CNI_PLUGIN_VERSION=1.6.2
 INSTALL_DIR=/opt/cni/bin
-mkdir -p $INSTALL_DIR 
+sudo mkdir -p $INSTALL_DIR 
 curl -sL https://github.com/containernetworking/plugins/releases/download/v$CNI_PLUGIN_VERSION/cni-plugins-$PLATFORM-$ARCH-v$CNI_PLUGIN_VERSION.tgz | sudo tar -C $INSTALL_DIR -xz 
 echo -e "##### ... done."
 
@@ -61,4 +64,9 @@ sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 sudo systemctl enable --now kubelet
+echo -e "##### ... done."
+
+echo -e "##### Installing helm ..."
+# https://helm.sh/docs/intro/install/
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 echo -e "##### ... done."
