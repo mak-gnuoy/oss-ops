@@ -1,25 +1,13 @@
 # Airflow
 
-## Configuration
- - changing enviroment variables
-   ```
-   $ vi .env
-   ...
-   AIRFLOW_UID=0
-   AIRFLOW_PROJ_DIR=$HOME/data/airflow
-   DOCKER_SOCKET_FILE=/var/run/docker.sock
-   ...
-
-   ```
-
 ## Operation
- - run
+ - start
    ```
-   $ ./up.sh
+   $ ./startup.sh
    ```
  - stop
    ```
-   $ ./down.sh
+   $ ./shutdown.sh
    ```
 
 ## Web dashboard
@@ -29,3 +17,7 @@
 
    ```
 
+## Debugging
+ ```
+ $ python dags/mydag.py
+ ```
