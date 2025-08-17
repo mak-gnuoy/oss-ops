@@ -1,0 +1,11 @@
+services:
+  devops:
+    image: openbao/openbao
+    container_name: openbao
+    restart: unless-stopped
+    ports:
+      - 8200:8200
+    volumes:
+      - ~/Data/openbao/data:/openbao/file
+      - ~/Data/openbao/logs:/openbao/logs
+      - ./conf:/openbao/config
