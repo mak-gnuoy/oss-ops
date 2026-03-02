@@ -21,5 +21,7 @@ services:
     depends_on:
       - ollama
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 
